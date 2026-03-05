@@ -1,0 +1,6 @@
+{
+  "appId": "com.tradeease.app",
+  "appName": "TradeEase",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
