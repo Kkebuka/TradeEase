@@ -72,9 +72,12 @@ export default function Converter({ user, onNavigate }) {
     const quantityPerCarton = Number(product.quantityPerCarton || 0);
     const sellingPricePerCarton = sellingPricePerPiece * quantityPerCarton;
     const profitPerPiece = sellingPricePerPiece - previewResult.costPerPiece;
-    const profitPerCarton = sellingPricePerCarton - previewResult.totalCartonCost;
+    const profitPerCarton =
+      sellingPricePerCarton - previewResult.totalCartonCost;
     const margin =
-      sellingPricePerPiece > 0 ? (profitPerPiece / sellingPricePerPiece) * 100 : 0;
+      sellingPricePerPiece > 0
+        ? (profitPerPiece / sellingPricePerPiece) * 100
+        : 0;
     const breakEvenQty =
       sellingPricePerPiece > 0
         ? Math.ceil(previewResult.totalCartonCost / sellingPricePerPiece)
@@ -444,13 +447,17 @@ export default function Converter({ user, onNavigate }) {
             </strong>
           </div>
 
-          <details className="card" style={{ padding: 14 }}>
-            <summary>Profit Estimator</summary>
-            <div className="field" style={{ marginTop: 12 }}>
+          <section className="card stack" style={{ padding: 14 }}>
+            <div className="row-between">
+              <strong>Profit Estimator</strong>
+              <span className="badge offline">Required</span>
+            </div>
+            <div className="field">
               <label className="field-label">
                 Your selling price per piece (₦)
               </label>
               <NumericInput
+                className="field-input field-input-prominent"
                 value={profitPrice}
                 allowDecimal
                 onValueChange={(value) => {
@@ -464,33 +471,33 @@ export default function Converter({ user, onNavigate }) {
             </div>
             {profitPrice ? (
               <div className="stack">
-                <small className="muted">
-                  Profit per piece:{" "}
-                  {formatNaira(computedPricing.profitPerPiece)}
-                </small>
-                <small className="muted">
-                  Margin:{" "}
-                  {computedPricing.margin.toFixed(1)}
-                  %
-                </small>
+                <div className="row-between">
+                  <small className="muted">
+                    Profit per piece:{" "}
+                    {formatNaira(computedPricing.profitPerPiece)}
+                  </small>
+                  <small className="muted">
+                    Margin: {computedPricing.margin.toFixed(1)}%
+                  </small>
+                </div>
                 <small className="muted">
                   Total carton selling price:{" "}
                   {formatNaira(computedPricing.sellingPricePerCarton)}
                 </small>
                 <small className="muted">
-                  Profit per carton:{" "}
+                  Profit for carton(s):{" "}
                   {formatNaira(computedPricing.profitPerCarton)}
                 </small>
-                <small className="muted">
-                  Break-even qty:{" "}
-                  {computedPricing.breakEvenQty}
-                </small>
               </div>
-            ) : null}
-          </details>
+            ) : (
+              <small className="muted estimator-note">
+                Enter selling price to compute margin and profit instantly.
+              </small>
+            )}
+          </section>
 
           <button
-            className="btn btn-primary"
+            className="btn btn-secondary"
             onClick={() => {
               const saved = addOrUpdateItem();
               if (!saved) return;
@@ -551,7 +558,8 @@ export default function Converter({ user, onNavigate }) {
                 <small className="muted">
                   Selling/Carton:{" "}
                   {formatNaira(item.pricing?.sellingPricePerCarton || 0)} ·
-                  Profit/Carton: {formatNaira(item.pricing?.profitPerCarton || 0)}
+                  Profit/Carton:{" "}
+                  {formatNaira(item.pricing?.profitPerCarton || 0)}
                 </small>
               </div>
             ))

@@ -1,34 +1,43 @@
-import { useMemo, useState } from 'react';
-import BackButton from '../components/BackButton';
-import { TrashIcon } from '../components/Icons';
-import { useModal } from '../components/Modal';
-import NumericInput from '../components/NumericInput';
-import { useToast } from '../components/Toast';
-import { exportInvoiceDetailedPdf, exportInvoicePdf } from '../utils/pdf';
-import { formatDate, formatNaira, generateId } from '../utils/helpers';
+import { useMemo, useState } from "react";
+import BackButton from "../components/BackButton";
+import { TrashIcon } from "../components/Icons";
+import { useModal } from "../components/Modal";
+import NumericInput from "../components/NumericInput";
+import { useToast } from "../components/Toast";
+import { exportInvoiceDetailedPdf, exportInvoicePdf } from "../utils/pdf";
+import { formatDate, formatNaira, generateId } from "../utils/helpers";
 import {
   createInvoiceSkeleton,
   deleteInvoice,
   getBusinessProfile,
   getInvoices,
   saveBusinessProfile,
-  saveInvoice
-} from '../utils/storage';
+  saveInvoice,
+} from "../utils/storage";
 
 function normalizeItems(items) {
   return items.map((item) => ({
     ...item,
     unitPrice: Number(item.unitPrice) || 0,
-    quantity: Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 0,
-    subtotal: (Number(item.unitPrice) || 0) * (Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 0)
+    quantity: Number.isFinite(Number(item.quantity))
+      ? Number(item.quantity)
+      : 0,
+    subtotal:
+      (Number(item.unitPrice) || 0) *
+      (Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 0),
   }));
 }
 
 function ReceiptPaper({ invoice, business }) {
   return (
     <section className="receipt-paper">
-      <h3 className="receipt-business">{(business?.name || 'OUR STORE').toUpperCase()}</h3>
-      <p className="receipt-sub receipt-center">{business?.phone || ''} {business?.address ? `| ${business.address}` : ''}</p>
+      <h3 className="receipt-business">
+        {(business?.name || "OUR STORE").toUpperCase()}
+      </h3>
+      <p className="receipt-sub receipt-center">
+        {business?.phone || ""}{" "}
+        {business?.address ? `| ${business.address}` : ""}
+      </p>
       <hr className="receipt-rule" />
 
       <div className="receipt-meta-grid">
@@ -37,7 +46,7 @@ function ReceiptPaper({ invoice, business }) {
         <span>Date:</span>
         <span>{formatDate(invoice.createdAt)}</span>
         <span>Customer:</span>
-        <span>{invoice.customerName || '-'}</span>
+        <span>{invoice.customerName || "-"}</span>
       </div>
 
       <hr className="receipt-rule" />
@@ -73,7 +82,7 @@ function ReceiptPaper({ invoice, business }) {
 export default function Invoice({ onNavigate }) {
   const [business, setBusiness] = useState(getBusinessProfile());
   const [invoice, setInvoice] = useState(createInvoiceSkeleton());
-  const [mode, setMode] = useState('form');
+  const [mode, setMode] = useState("form");
   const [history, setHistory] = useState(getInvoices());
   const [activeInvoice, setActiveInvoice] = useState(null);
   const [errors, setErrors] = useState({});
@@ -100,28 +109,33 @@ export default function Invoice({ onNavigate }) {
     const payload = {
       name: event.target.name.value.trim(),
       phone: event.target.phone.value.trim(),
-      address: event.target.address.value.trim()
+      address: event.target.address.value.trim(),
     };
     if (!payload.name) return;
     saveBusinessProfile(payload);
     setBusiness(payload);
-    showToast('Business profile saved ✓');
+    showToast("Business profile saved ✓");
   };
 
   const validateForm = () => {
     const next = {};
-    if (!invoice.customerName.trim()) next.customerName = 'Customer name is required';
+    if (!invoice.customerName.trim())
+      next.customerName = "Customer name is required";
     totals.items.forEach((item, index) => {
-      if (!item.name.trim()) next[`name_${index}`] = 'Item name required';
-      if (item.unitPrice <= 0) next[`unit_${index}`] = 'Unit price required';
-      if (item.quantity <= 0) next[`qty_${index}`] = 'Quantity required';
+      if (!item.name.trim()) next[`name_${index}`] = "Item name required";
+      if (item.unitPrice <= 0) next[`unit_${index}`] = "Unit price required";
+      if (item.quantity <= 0) next[`qty_${index}`] = "Quantity required";
     });
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
   const persistInvoice = () => {
-    const payload = { ...invoice, items: totals.items, grandTotal: totals.grandTotal };
+    const payload = {
+      ...invoice,
+      items: totals.items,
+      grandTotal: totals.grandTotal,
+    };
     saveInvoice(payload);
     setHistory(getInvoices());
     return payload;
@@ -130,7 +144,7 @@ export default function Invoice({ onNavigate }) {
   const sharePdf = (row) => {
     exportInvoicePdf(row, business);
     const message = `Invoice ${row.invoiceNumber} for ${row.customerName} · ${formatNaira(row.grandTotal)}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
   };
 
   const openDelete = (id) => {
@@ -142,13 +156,15 @@ export default function Invoice({ onNavigate }) {
           onClick={() => {
             deleteInvoice(id);
             setHistory(getInvoices());
-            showToast('Invoice deleted', 'warning');
+            showToast("Invoice deleted", "warning");
             closeModal();
           }}
         >
           Delete
         </button>
-        <button className="btn btn-secondary" onClick={closeModal}>Cancel</button>
+        <button className="btn btn-secondary" onClick={closeModal}>
+          Cancel
+        </button>
       </div>
     ));
   };
@@ -157,14 +173,28 @@ export default function Invoice({ onNavigate }) {
     return (
       <main className="stack page-anim-enter">
         <header className="page-header">
-          <div className="row"><BackButton onClick={() => onNavigate('home')} /><h2 className="page-title">Invoice Generator</h2></div>
+          <div className="row">
+            <BackButton onClick={() => onNavigate("home")} />
+            <h2 className="page-title">Invoice Generator</h2>
+          </div>
         </header>
         <form className="card stack" onSubmit={saveBusiness}>
-          <h3>Business Profile Setup</h3>
-          <div className="field"><label className="field-label">Business Name</label><input className="field-input" name="name" required /></div>
-          <div className="field"><label className="field-label">Business Phone</label><input className="field-input" name="phone" /></div>
-          <div className="field"><label className="field-label">Business Address</label><input className="field-input" name="address" /></div>
-          <button className="btn btn-primary" type="submit">Save & Continue</button>
+          <h3>Your Business Profile Setup</h3>
+          <div className="field">
+            <label className="field-label">Business Name</label>
+            <input className="field-input" name="name" required />
+          </div>
+          <div className="field">
+            <label className="field-label">Business Phone</label>
+            <input className="field-input" name="phone" />
+          </div>
+          <div className="field">
+            <label className="field-label">Business Address</label>
+            <input className="field-input" name="address" />
+          </div>
+          <button className="btn btn-primary" type="submit">
+            Save & Continue
+          </button>
         </form>
       </main>
     );
@@ -173,17 +203,28 @@ export default function Invoice({ onNavigate }) {
   return (
     <main className="stack page-anim-enter">
       <header className="page-header">
-        <div className="row"><BackButton onClick={() => onNavigate('home')} /><h2 className="page-title">Invoice Generator</h2></div>
         <div className="row">
-          <button className="btn btn-secondary" style={{ width: 'auto', minHeight: 40, padding: '8px 12px' }} onClick={() => setMode('history')}>History</button>
+          <BackButton onClick={() => onNavigate("home")} />
+          <h2 className="page-title">Invoice Generator</h2>
+        </div>
+        <div className="row">
+          <button
+            className="btn btn-secondary"
+            style={{ width: "auto", minHeight: 40, padding: "8px 12px" }}
+            onClick={() => setMode("history")}
+          >
+            History
+          </button>
         </div>
       </header>
 
-      {mode === 'form' ? (
+      {mode === "form" ? (
         <section className="card stack">
-          <div className="row" style={{ flexWrap: 'wrap' }}>
+          <div className="row" style={{ flexWrap: "wrap" }}>
             <span className="badge live">{invoice.invoiceNumber}</span>
-            <span className="badge offline">{formatDate(new Date().toISOString())}</span>
+            <span className="badge offline">
+              {formatDate(new Date().toISOString())}
+            </span>
           </div>
 
           <div className="field">
@@ -192,11 +233,16 @@ export default function Invoice({ onNavigate }) {
               className="field-input"
               value={invoice.customerName}
               onChange={(e) => {
-                clearError('customerName');
-                setInvoice((prev) => ({ ...prev, customerName: e.target.value }));
+                clearError("customerName");
+                setInvoice((prev) => ({
+                  ...prev,
+                  customerName: e.target.value,
+                }));
               }}
             />
-            {errors.customerName ? <small className="error">{errors.customerName}</small> : null}
+            {errors.customerName ? (
+              <small className="error">{errors.customerName}</small>
+            ) : null}
           </div>
 
           <h3>Line Items</h3>
@@ -211,13 +257,17 @@ export default function Invoice({ onNavigate }) {
                     clearError(`name_${index}`);
                     setInvoice((prev) => ({
                       ...prev,
-                      items: prev.items.map((row, i) => (i === index ? { ...row, name: e.target.value } : row))
+                      items: prev.items.map((row, i) =>
+                        i === index ? { ...row, name: e.target.value } : row,
+                      ),
                     }));
                   }}
                 />
-                {errors[`name_${index}`] ? <small className="error">{errors[`name_${index}`]}</small> : null}
+                {errors[`name_${index}`] ? (
+                  <small className="error">{errors[`name_${index}`]}</small>
+                ) : null}
               </div>
-              <div className="row" style={{ alignItems: 'flex-end' }}>
+              <div className="row" style={{ alignItems: "flex-end" }}>
                 <div className="field" style={{ flex: 1 }}>
                   <label className="field-label">Unit Price (₦)</label>
                   <NumericInput
@@ -227,11 +277,15 @@ export default function Invoice({ onNavigate }) {
                       clearError(`unit_${index}`);
                       setInvoice((prev) => ({
                         ...prev,
-                        items: prev.items.map((row, i) => (i === index ? { ...row, unitPrice: value } : row))
+                        items: prev.items.map((row, i) =>
+                          i === index ? { ...row, unitPrice: value } : row,
+                        ),
                       }));
                     }}
                   />
-                  {errors[`unit_${index}`] ? <small className="error">{errors[`unit_${index}`]}</small> : null}
+                  {errors[`unit_${index}`] ? (
+                    <small className="error">{errors[`unit_${index}`]}</small>
+                  ) : null}
                 </div>
                 <div className="field" style={{ flex: 1 }}>
                   <label className="field-label">Quantity</label>
@@ -241,17 +295,26 @@ export default function Invoice({ onNavigate }) {
                       clearError(`qty_${index}`);
                       setInvoice((prev) => ({
                         ...prev,
-                        items: prev.items.map((row, i) => (i === index ? { ...row, quantity: value } : row))
+                        items: prev.items.map((row, i) =>
+                          i === index ? { ...row, quantity: value } : row,
+                        ),
                       }));
                     }}
                   />
-                  {errors[`qty_${index}`] ? <small className="error">{errors[`qty_${index}`]}</small> : null}
+                  {errors[`qty_${index}`] ? (
+                    <small className="error">{errors[`qty_${index}`]}</small>
+                  ) : null}
                 </div>
                 {invoice.items.length > 1 ? (
                   <button
                     className="icon-action danger"
                     aria-label="Delete row"
-                    onClick={() => setInvoice((prev) => ({ ...prev, items: prev.items.filter((_, i) => i !== index) }))}
+                    onClick={() =>
+                      setInvoice((prev) => ({
+                        ...prev,
+                        items: prev.items.filter((_, i) => i !== index),
+                      }))
+                    }
                   >
                     <TrashIcon className="action-icon" />
                   </button>
@@ -259,7 +322,12 @@ export default function Invoice({ onNavigate }) {
               </div>
               <div className="row-between">
                 <small className="muted">Subtotal</small>
-                <strong>{formatNaira((Number(item.unitPrice) || 0) * (Number(item.quantity) || 0))}</strong>
+                <strong>
+                  {formatNaira(
+                    (Number(item.unitPrice) || 0) *
+                      (Number(item.quantity) || 0),
+                  )}
+                </strong>
               </div>
             </div>
           ))}
@@ -268,12 +336,21 @@ export default function Invoice({ onNavigate }) {
             className="btn btn-secondary"
             onClick={() => {
               if (invoice.items.length >= 20) {
-                showToast('Maximum 20 line items', 'warning');
+                showToast("Maximum 20 line items", "warning");
                 return;
               }
               setInvoice((prev) => ({
                 ...prev,
-                items: [...prev.items, { id: generateId('line'), name: '', unitPrice: '', quantity: 1, subtotal: 0 }]
+                items: [
+                  ...prev.items,
+                  {
+                    id: generateId("line"),
+                    name: "",
+                    unitPrice: "",
+                    quantity: 1,
+                    subtotal: 0,
+                  },
+                ],
               }));
             }}
           >
@@ -281,18 +358,31 @@ export default function Invoice({ onNavigate }) {
           </button>
 
           <section className="card" style={{ padding: 14 }}>
-            <div className="row-between"><span>Subtotal</span><strong>{formatNaira(totals.subtotal)}</strong></div>
-            <div className="row-between"><span>Grand Total</span><strong style={{ color: 'var(--accent-green)', fontSize: 22 }}>{formatNaira(totals.grandTotal)}</strong></div>
+            <div className="row-between">
+              <span>Subtotal</span>
+              <strong>{formatNaira(totals.subtotal)}</strong>
+            </div>
+            <div className="row-between">
+              <span>Grand Total</span>
+              <strong style={{ color: "var(--accent-green)", fontSize: 22 }}>
+                {formatNaira(totals.grandTotal)}
+              </strong>
+            </div>
           </section>
 
-          <button className="btn btn-primary" onClick={() => validateForm() && setMode('preview')}>Preview Invoice</button>
+          <button
+            className="btn btn-primary"
+            onClick={() => validateForm() && setMode("preview")}
+          >
+            Preview Invoice
+          </button>
           <button
             className="btn btn-secondary"
             onClick={() => {
               if (!validateForm()) return;
               persistInvoice();
-              showToast('Draft saved ✓');
-              setMode('history');
+              showToast("Draft saved ✓");
+              setMode("history");
             }}
           >
             Save as Draft
@@ -300,26 +390,69 @@ export default function Invoice({ onNavigate }) {
         </section>
       ) : null}
 
-      {mode === 'preview' ? (
+      {mode === "preview" ? (
         <section className="card stack">
-          <ReceiptPaper invoice={{ ...invoice, items: totals.items, grandTotal: totals.grandTotal }} business={business} />
+          <ReceiptPaper
+            invoice={{
+              ...invoice,
+              items: totals.items,
+              grandTotal: totals.grandTotal,
+            }}
+            business={business}
+          />
 
           <button
             className="btn btn-whatsapp"
-            onClick={() => sharePdf({ ...invoice, items: totals.items, grandTotal: totals.grandTotal })}
+            onClick={() =>
+              sharePdf({
+                ...invoice,
+                items: totals.items,
+                grandTotal: totals.grandTotal,
+              })
+            }
           >
             Share Receipt PDF
           </button>
-          <button className="btn btn-secondary" onClick={() => exportInvoicePdf({ ...invoice, items: totals.items, grandTotal: totals.grandTotal }, business)}>Download POS PDF</button>
-          <button className="btn btn-secondary" onClick={() => exportInvoiceDetailedPdf({ ...invoice, items: totals.items, grandTotal: totals.grandTotal }, business)}>Download Detailed PDF</button>
-          <button className="btn btn-secondary" onClick={() => setMode('form')}>Edit Invoice</button>
+          <button
+            className="btn btn-secondary"
+            onClick={() =>
+              exportInvoicePdf(
+                {
+                  ...invoice,
+                  items: totals.items,
+                  grandTotal: totals.grandTotal,
+                },
+                business,
+              )
+            }
+          >
+            Download POS PDF
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() =>
+              exportInvoiceDetailedPdf(
+                {
+                  ...invoice,
+                  items: totals.items,
+                  grandTotal: totals.grandTotal,
+                },
+                business,
+              )
+            }
+          >
+            Download Detailed PDF
+          </button>
+          <button className="btn btn-secondary" onClick={() => setMode("form")}>
+            Edit Invoice
+          </button>
           <button
             className="btn btn-primary"
             onClick={() => {
               persistInvoice();
-              showToast('Invoice saved ✓');
+              showToast("Invoice saved ✓");
               setInvoice(createInvoiceSkeleton());
-              setMode('history');
+              setMode("history");
             }}
           >
             Save & Done
@@ -327,50 +460,97 @@ export default function Invoice({ onNavigate }) {
         </section>
       ) : null}
 
-      {mode === 'history' ? (
+      {mode === "history" ? (
         <section className="card stack">
-          <div className="row-between"><h3>Invoice History</h3><button className="btn btn-secondary" style={{ width: 'auto', minHeight: 40, padding: '8px 12px' }} onClick={() => setMode('form')}>New Invoice</button></div>
-          {history.length ? history.map((row) => (
+          <div className="row-between">
+            <h3>Invoice History</h3>
             <button
-              className="card"
-              style={{ textAlign: 'left' }}
-              key={row.id}
-              onClick={() => {
-                setActiveInvoice(row);
-                setMode('detail');
-              }}
+              className="btn btn-secondary"
+              style={{ width: "auto", minHeight: 40, padding: "8px 12px" }}
+              onClick={() => setMode("form")}
             >
-              <div className="row-between">
-                <strong className="history-name">{row.customerName || 'Unnamed Customer'}</strong>
-                <div className="inline-tools">
-                  <strong style={{ color: 'var(--accent-green)' }}>{formatNaira(row.grandTotal)}</strong>
-                  <button
-                    className="icon-action danger"
-                    aria-label="Delete invoice"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openDelete(row.id);
-                    }}
-                  >
-                    <TrashIcon className="action-icon" />
-                  </button>
-                </div>
-              </div>
-              <small className="history-meta">{row.invoiceNumber} · {formatDate(row.createdAt)} · <span className="badge">Saved</span></small>
+              New Invoice
             </button>
-          )) : (
-            <div className="card stack"><h3>No invoices yet.</h3><small className="muted">Create your first one!</small><button className="btn btn-primary" onClick={() => setMode('form')}>Create Invoice</button></div>
+          </div>
+          {history.length ? (
+            history.map((row) => (
+              <button
+                className="card"
+                style={{ textAlign: "left" }}
+                key={row.id}
+                onClick={() => {
+                  setActiveInvoice(row);
+                  setMode("detail");
+                }}
+              >
+                <div className="row-between">
+                  <strong className="history-name">
+                    {row.customerName || "Unnamed Customer"}
+                  </strong>
+                  <div className="inline-tools">
+                    <strong style={{ color: "var(--accent-green)" }}>
+                      {formatNaira(row.grandTotal)}
+                    </strong>
+                    <button
+                      className="icon-action danger"
+                      aria-label="Delete invoice"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDelete(row.id);
+                      }}
+                    >
+                      <TrashIcon className="action-icon" />
+                    </button>
+                  </div>
+                </div>
+                <small className="history-meta">
+                  {row.invoiceNumber} · {formatDate(row.createdAt)} ·{" "}
+                  <span className="badge">Saved</span>
+                </small>
+              </button>
+            ))
+          ) : (
+            <div className="card stack">
+              <h3>No invoices yet.</h3>
+              <small className="muted">Create your first one!</small>
+              <button
+                className="btn btn-primary"
+                onClick={() => setMode("form")}
+              >
+                Create Invoice
+              </button>
+            </div>
           )}
         </section>
       ) : null}
 
-      {mode === 'detail' && activeInvoice ? (
+      {mode === "detail" && activeInvoice ? (
         <section className="card stack">
           <ReceiptPaper invoice={activeInvoice} business={business} />
-          <button className="btn btn-whatsapp" onClick={() => sharePdf(activeInvoice)}>Share Receipt PDF</button>
-          <button className="btn btn-secondary" onClick={() => exportInvoicePdf(activeInvoice, business)}>Download POS PDF</button>
-          <button className="btn btn-secondary" onClick={() => exportInvoiceDetailedPdf(activeInvoice, business)}>Download Detailed PDF</button>
-          <button className="btn btn-secondary" onClick={() => setMode('history')}>Back to History</button>
+          <button
+            className="btn btn-whatsapp"
+            onClick={() => sharePdf(activeInvoice)}
+          >
+            Share Receipt PDF
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportInvoicePdf(activeInvoice, business)}
+          >
+            Download POS PDF
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportInvoiceDetailedPdf(activeInvoice, business)}
+          >
+            Download Detailed PDF
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setMode("history")}
+          >
+            Back to History
+          </button>
         </section>
       ) : null}
     </main>
