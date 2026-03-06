@@ -89,3 +89,12 @@ export function EditIcon({ className = '' }) {
     </BaseIcon>
   );
 }
+
+export function ArrowLeftIcon({ className = '' }) {
+  return (
+    <BaseIcon className={className}>
+      <path d="M15 6l-6 6 6 6" />
+      <path d="M9 12h10" />
+    </BaseIcon>
+  );
+}

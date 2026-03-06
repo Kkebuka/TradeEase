@@ -19,7 +19,9 @@ export default function WelcomeScreen({ onDone }) {
   return (
     <main className="stack page-anim-enter" style={{ paddingTop: 22 }}>
       <section className="card" style={{ minHeight: '82vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h1 style={{ fontSize: '2.1rem' }}>TradeEase</h1>
+        <h1 className="brand brand-wordmark">
+          Trade<span className="accent">Ease</span>
+        </h1>
         <p className="kicker">Welcome! What should we call you?</p>
 
         <form className="stack" style={{ marginTop: 24 }} onSubmit={submit}>

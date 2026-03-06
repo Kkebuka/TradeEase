@@ -90,9 +90,10 @@ button.card:focus-visible {
 }
 
 .btn-secondary {
-  background: rgba(12, 27, 54, 0.9);
-  border: 1px solid rgba(99, 133, 196, 0.38);
-  color: #9dc3ff;
+  background: linear-gradient(170deg, rgba(29, 54, 96, 0.95), rgba(20, 40, 76, 0.95));
+  border: 1px solid rgba(126, 167, 238, 0.55);
+  color: #d7e6ff;
+  box-shadow: 0 6px 16px rgba(10, 22, 45, 0.42);
 }
 
 .btn-danger {
@@ -144,6 +145,21 @@ button.card:focus-visible {
   outline: none;
   border-color: var(--border-active);
   box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.16), 0 0 16px rgba(0, 200, 150, 0.14);
+}
+
+.field-input-prominent {
+  background: linear-gradient(180deg, rgba(16, 36, 70, 0.98), rgba(12, 28, 56, 0.98));
+  border-color: rgba(132, 171, 236, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.field-input-prominent:focus {
+  border-color: rgba(0, 212, 165, 0.72);
+  box-shadow: 0 0 0 3px rgba(0, 212, 165, 0.2), 0 0 20px rgba(0, 212, 165, 0.18);
+}
+
+.estimator-note {
+  color: #b6c9ea;
 }
 
 .error {
@@ -276,6 +292,31 @@ button.card:focus-visible {
 .icon-action.danger:hover {
   border-color: rgba(255, 92, 92, 0.75);
   color: #ffb2b2;
+}
+
+.back-button {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(126, 167, 238, 0.55);
+  background: linear-gradient(170deg, rgba(29, 54, 96, 0.96), rgba(19, 39, 72, 0.96));
+  color: #e4efff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(10, 22, 45, 0.42);
+}
+
+.back-button:focus-visible {
+  outline: 2px solid rgba(0, 221, 178, 0.8);
+  outline-offset: 2px;
+}
+
+.back-button-icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
 }
 
 .history-name {
