@@ -10,11 +10,11 @@ TradeEase is a free, open-source business toolkit designed specifically for smal
 
 It solves three real problems traders face daily:
 
-| Tool | Problem It Solves |
-|------|------------------|
-| **Import Calculator** | "How much did this shipment actually cost me per piece?" |
+| Tool                  | Problem It Solves                                          |
+| --------------------- | ---------------------------------------------------------- |
+| **Import Calculator** | "How much did this shipment actually cost me per piece?"   |
 | **Invoice Generator** | "I need a professional receipt for my customer right now." |
-| **Oni Gbese Ledger** | "Who owes me money and how much in total?" |
+| **Oni Gbese Ledger**  | "Who owes me money and how much in total?"                 |
 
 All data lives on **your device** via LocalStorage. Nothing is sent to any server.
 
@@ -23,12 +23,14 @@ All data lives on **your device** via LocalStorage. Nothing is sent to any serve
 ## Features
 
 ### 📦 Import Calculator
+
 - Multi-step landed cost flow (item cost → freight → clearing → profit)
 - Shared container constants: dollar rate, freight, clearing fee, container CBM
 - Per-product breakdown: cost per piece, cost per carton, suggested selling price
 - PDF export with full shipment summary and totals
 
 ### 🧾 Invoice Generator
+
 - Business profile setup (name, address, logo)
 - Dynamic line items (up to 20 products per invoice)
 - Two PDF formats: POS-style receipt + detailed invoice
@@ -36,6 +38,7 @@ All data lives on **your device** via LocalStorage. Nothing is sent to any serve
 - Sequential invoice numbering (`INV-0001`, `INV-0002`, ...)
 
 ### 📒 Oni Gbese (Debt Ledger)
+
 - Debtor list with outstanding balances and progress bars
 - Add debt, add more debt, record payments — all tracked
 - WhatsApp-ready statement text export per debtor
@@ -46,13 +49,13 @@ All data lives on **your device** via LocalStorage. Nothing is sent to any serve
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18 + Vite 5 |
-| PWA | `vite-plugin-pwa` + Workbox |
-| PDF Generation | `jspdf` + `jspdf-autotable` |
-| Persistence | Browser LocalStorage (local-first, no backend) |
-| Typography | `Syne` (headings) + `DM Sans` (UI/numbers) |
+| Layer          | Technology                                     |
+| -------------- | ---------------------------------------------- |
+| Frontend       | React 18 + Vite 5                              |
+| PWA            | `vite-plugin-pwa` + Workbox                    |
+| PDF Generation | `jspdf` + `jspdf-autotable`                    |
+| Persistence    | Browser LocalStorage (local-first, no backend) |
+| Typography     | `Syne` (headings) + `DM Sans` (UI/numbers)     |
 
 ---
 
@@ -128,15 +131,15 @@ trade-easily/
 
 These are all the keys the app reads/writes to your browser storage:
 
-| Key | Purpose |
-|-----|---------|
-| `tradeease_user` | User display name |
-| `tradeease_dollar_rate` | Cached USD/NGN exchange rate |
-| `tradeease_sessions` | Import calculator sessions |
-| `tradeease_business` | Business profile for invoices |
-| `tradeease_invoices` | All generated invoices |
-| `tradeease_invoice_counter` | Sequential invoice number tracker |
-| `tradeease_debtors` | Debtor records and payment history |
+| Key                         | Purpose                            |
+| --------------------------- | ---------------------------------- |
+| `tradeease_user`            | User display name                  |
+| `tradeease_dollar_rate`     | Cached USD/NGN exchange rate       |
+| `tradeease_sessions`        | Import calculator sessions         |
+| `tradeease_business`        | Business profile for invoices      |
+| `tradeease_invoices`        | All generated invoices             |
+| `tradeease_invoice_counter` | Sequential invoice number tracker  |
+| `tradeease_debtors`         | Debtor records and payment history |
 
 ---
 
@@ -146,11 +149,11 @@ TradeEase is a static app — deploy the `dist/` folder to any static host.
 
 ### Recommended Hosts (Free Tier)
 
-| Host | Command / Notes |
-|------|----------------|
-| **Netlify** | Drag & drop `dist/` or connect GitHub repo |
-| **Vercel** | `vercel --prod` or auto-deploy from GitHub |
-| **GitHub Pages** | Set build output to `dist/` in workflow |
+| Host                 | Command / Notes                                    |
+| -------------------- | -------------------------------------------------- |
+| **Netlify**          | Drag & drop `dist/` or connect GitHub repo         |
+| **Vercel**           | `vercel --prod` or auto-deploy from GitHub         |
+| **GitHub Pages**     | Set build output to `dist/` in workflow            |
 | **Cloudflare Pages** | Connect repo, set build command to `npm run build` |
 
 ### Push to GitHub First
