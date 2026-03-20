@@ -78,11 +78,11 @@ define(['./workbox-6fc00345'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
-    "url": "index.html",
-    "revision": "0.trv4ekf5rt"
+    "url": "/index.html",
+    "revision": "0.rt4t1b5a1r8"
   }], {});
   workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
+  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
     allowlist: [/^\/$/]
   }));
   workbox.registerRoute(/^https:\/\/open\.er-api\.com\/v6\/latest\/USD$/, new workbox.NetworkFirst({
