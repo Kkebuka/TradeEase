@@ -42,6 +42,16 @@ export default function Converter({ user, onNavigate }) {
   const [previewResult, setPreviewResult] = useState(null);
   const [profitPrice, setProfitPrice] = useState("");
   const [errors, setErrors] = useState({});
+  const hasProgress =
+    !!session.name ||
+    Object.values(session.constants).some(Boolean) ||
+    session.items.length > 0 ||
+    !!product.itemName ||
+    !!product.cartonPriceUSD ||
+    !!product.quantityPerCarton ||
+    !!product.cartonCBM ||
+    !!profitPrice ||
+    !!previewResult;
 
   const clearError = (key) => {
     setErrors((prev) => {
@@ -247,8 +257,8 @@ export default function Converter({ user, onNavigate }) {
       <div className="stack">
         <h3>Done adding products?</h3>
         <p className="muted">
-          Your current item has been saved. Preview all items now, or go back and
-          add more products.
+          Your current item has been saved. Preview all items now, or go back
+          and add more products.
         </p>
         <button
           className="btn btn-primary"
@@ -272,9 +282,58 @@ export default function Converter({ user, onNavigate }) {
     ));
   };
 
-  const saveAndHome = () => {
+  const openExitConfirmation = () => {
+    openModal(({ closeModal: close }) => (
+      <div className="stack">
+        <h3>Leave this calculator?</h3>
+        <p className="muted">
+          Your current progress will stay here only if you finish by printing
+          and saving the calculation.
+        </p>
+        <button
+          className="btn btn-danger"
+          onClick={() => {
+            close();
+            onNavigate("home");
+          }}
+        >
+          Leave Calculator
+        </button>
+        <button className="btn btn-secondary" onClick={close}>
+          Stay Here
+        </button>
+      </div>
+    ));
+  };
+
+  const handleBack = () => {
+    if (step === 5) {
+      setStep(3);
+      return;
+    }
+    if (step === 4) {
+      setStep(3);
+      return;
+    }
+    if (step === 3) {
+      setStep(2);
+      return;
+    }
+    if (step === 2) {
+      setStep(1);
+      return;
+    }
+    if (hasProgress) {
+      openExitConfirmation();
+      return;
+    }
+    onNavigate("home");
+  };
+
+  const printSaveAndHome = () => {
+    exportSessionPdf(session, user);
     saveSession(session);
-    showToast("Calculation saved ✓");
+    showToast("Calculation printed and saved ✓");
     onNavigate("home");
   };
 
@@ -282,7 +341,7 @@ export default function Converter({ user, onNavigate }) {
     <main className="stack page-anim-enter">
       <header className="page-header">
         <div className="row">
-          <BackButton onClick={() => onNavigate("home")} />
+          <BackButton onClick={handleBack} />
           <h2 className="page-title">Import Calculator</h2>
         </div>
       </header>
@@ -602,14 +661,11 @@ export default function Converter({ user, onNavigate }) {
             <strong className="money">{formatNaira(totalInvestment)}</strong>
           </div>
 
-          <button
-            className="btn btn-secondary"
-            onClick={() => exportSessionPdf(session, user)}
-          >
-            Download PDF
+          <button className="btn btn-secondary" onClick={() => setStep(3)}>
+            Add More Items
           </button>
-          <button className="btn btn-primary" onClick={saveAndHome}>
-            Save & Go Home
+          <button className="btn btn-primary" onClick={printSaveAndHome}>
+            Download and Save
           </button>
         </section>
       ) : null}
