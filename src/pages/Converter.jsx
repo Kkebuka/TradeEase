@@ -469,7 +469,12 @@ export default function Converter({ user, onNavigate }) {
                 "e.g. Phone Charger 65W",
               ],
               ["cartonPriceUSD", "Carton Price ($)", "number", ""],
-              ["quantityPerCarton", "Total quantity in carton", "number", ""],
+              [
+                "quantityPerCarton",
+                "Total quantity in carton(pcs)",
+                "number",
+                "",
+              ],
               ["cartonCBM", "CBM of carton(s)", "number", ""],
             ].map(([key, label, type, placeholder]) => (
               <div className="field" key={key}>
