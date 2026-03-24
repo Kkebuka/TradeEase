@@ -29,7 +29,7 @@ function calculateItem(constants, product) {
 }
 
 export default function Converter({ user, onNavigate }) {
-  const { openModal, closeModal } = useModal();
+  const { openModal } = useModal();
   const { showToast } = useToast();
   const [step, setStep] = useState(1);
   const [session, setSession] = useState(createSessionSkeleton(""));
@@ -237,6 +237,36 @@ export default function Converter({ user, onNavigate }) {
         </button>
         <button className="btn btn-secondary" onClick={close}>
           Cancel
+        </button>
+      </div>
+    ));
+  };
+
+  const openPreviewConfirmation = () => {
+    openModal(({ closeModal: close }) => (
+      <div className="stack">
+        <h3>Done adding products?</h3>
+        <p className="muted">
+          Your current item has been saved. Preview all items now, or go back and
+          add more products.
+        </p>
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            close();
+            setStep(5);
+          }}
+        >
+          Yes, Preview Items
+        </button>
+        <button
+          className="btn btn-secondary"
+          onClick={() => {
+            close();
+            setStep(3);
+          }}
+        >
+          Continue Adding
         </button>
       </div>
     ));
@@ -497,7 +527,7 @@ export default function Converter({ user, onNavigate }) {
           </section>
 
           <button
-            className="btn btn-secondary"
+            className="btn btn-primary"
             onClick={() => {
               const saved = addOrUpdateItem();
               if (!saved) return;
@@ -508,11 +538,11 @@ export default function Converter({ user, onNavigate }) {
             Add Another Item
           </button>
           <button
-            className="btn btn-primary"
+            className="btn btn-secondary"
             onClick={() => {
               const saved = addOrUpdateItem();
               if (!saved) return;
-              setStep(5);
+              openPreviewConfirmation();
             }}
           >
             Preview All Items →
