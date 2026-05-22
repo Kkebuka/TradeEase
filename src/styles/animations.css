@@ -42,3 +42,59 @@
 .toast {
   animation: toastIn 160ms ease;
 }
+
+/* Live conversion rate pulse dot animation */
+@keyframes pulse-dot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 211, 148, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(0, 211, 148, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 211, 148, 0);
+  }
+}
+
+@keyframes pulse-dot-warn {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+.rate-dot {
+  animation: pulse-dot 2s infinite ease-in-out !important;
+}
+
+.rate-dot.warn {
+  animation: pulse-dot-warn 2s infinite ease-in-out !important;
+}
+
+/* Modal Bottom Drawer animations */
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.modal-overlay {
+  animation: modal-fade-in 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-sheet {
+  animation: modal-slide-up 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
