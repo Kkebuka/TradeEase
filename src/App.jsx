@@ -10,24 +10,32 @@ const Invoice = lazy(() => import('./pages/Invoice'));
 const Ledger = lazy(() => import('./pages/Ledger'));
 const WelcomeScreen = lazy(() => import('./pages/WelcomeScreen'));
 
-function routeFromHash() {
-  const raw = window.location.hash.replace('#', '');
-  return ['home', 'converter', 'invoice', 'ledger'].includes(raw) ? raw : 'home';
+function parseHash() {
+  const hash = window.location.hash.replace('#', '');
+  const [path, queryString] = hash.split('?');
+  const params = {};
+  if (queryString) {
+    queryString.split('&').forEach(pair => {
+      const [key, value] = pair.split('=');
+      if (key) params[key] = decodeURIComponent(value || '');
+    });
+  }
+  const route = ['home', 'converter', 'invoice', 'ledger'].includes(path) ? path : 'home';
+  return { route, params };
 }
 
 function AppBody() {
-  const [route, setRoute] = useState(routeFromHash());
+  const [routeState, setRouteState] = useState(parseHash());
   const [user, setUser] = useState(getUser());
 
   useEffect(() => {
-    const onHashChange = () => setRoute(routeFromHash());
+    const onHashChange = () => setRouteState(parseHash());
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
   const navigate = (next) => {
     window.location.hash = next;
-    setRoute(next);
   };
 
   const page = useMemo(() => {
@@ -35,18 +43,20 @@ function AppBody() {
       return <WelcomeScreen onDone={setUser} />;
     }
 
-    if (route === 'converter') return <Converter user={user} onNavigate={navigate} />;
-    if (route === 'invoice') return <Invoice user={user} onNavigate={navigate} />;
+    const { route, params } = routeState;
+
+    if (route === 'converter') return <Converter user={user} onNavigate={navigate} editSessionId={params.edit} />;
+    if (route === 'invoice') return <Invoice user={user} onNavigate={navigate} editInvoiceId={params.edit} />;
     if (route === 'ledger') return <Ledger user={user} onNavigate={navigate} />;
     return <Home user={user} onNavigate={navigate} onUserChange={setUser} />;
-  }, [route, user]);
+  }, [routeState, user]);
 
   return (
     <div className="app-shell">
       <Suspense fallback={<main className="stack"><section className="card"><small className="muted">Loading...</small></section></main>}>
         {page}
       </Suspense>
-      {user ? <BottomNav route={route} onChange={navigate} /> : null}
+      {user ? <BottomNav route={routeState.route} onChange={navigate} /> : null}
     </div>
   );
 }
