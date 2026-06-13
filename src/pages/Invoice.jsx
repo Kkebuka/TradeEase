@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BackButton from "../components/BackButton";
 import { TrashIcon } from "../components/Icons";
 import { useModal } from "../components/Modal";
@@ -79,7 +79,7 @@ function ReceiptPaper({ invoice, business }) {
   );
 }
 
-export default function Invoice({ onNavigate }) {
+export default function Invoice({ onNavigate, editInvoiceId }) {
   const [business, setBusiness] = useState(getBusinessProfile());
   const [invoice, setInvoice] = useState(createInvoiceSkeleton());
   const [mode, setMode] = useState("form");
@@ -88,6 +88,21 @@ export default function Invoice({ onNavigate }) {
   const [errors, setErrors] = useState({});
   const { showToast } = useToast();
   const { openModal } = useModal();
+
+  useEffect(() => {
+    if (editInvoiceId) {
+      const allInvoices = getInvoices();
+      const found = allInvoices.find(i => i.id === editInvoiceId);
+      if (found) {
+        setInvoice(found);
+        setActiveInvoice(found);
+        setMode("detail");
+      } else {
+        showToast("Invoice not found", "error");
+        onNavigate("home");
+      }
+    }
+  }, [editInvoiceId]);
 
   const clearError = (key) => {
     setErrors((prev) => {
@@ -382,7 +397,11 @@ export default function Invoice({ onNavigate }) {
               if (!validateForm()) return;
               persistInvoice();
               showToast("Draft saved ✓");
-              setMode("history");
+              if (editInvoiceId) {
+                onNavigate("home");
+              } else {
+                setMode("history");
+              }
             }}
           >
             Save as Draft
@@ -452,7 +471,11 @@ export default function Invoice({ onNavigate }) {
               persistInvoice();
               showToast("Invoice saved ✓");
               setInvoice(createInvoiceSkeleton());
-              setMode("history");
+              if (editInvoiceId) {
+                onNavigate("home");
+              } else {
+                setMode("history");
+              }
             }}
           >
             Save & Done
@@ -547,9 +570,24 @@ export default function Invoice({ onNavigate }) {
           </button>
           <button
             className="btn btn-secondary"
-            onClick={() => setMode("history")}
+            onClick={() => {
+              setInvoice(activeInvoice);
+              setMode("form");
+            }}
           >
-            Back to History
+            Edit Invoice
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              if (editInvoiceId) {
+                onNavigate("home");
+              } else {
+                setMode("history");
+              }
+            }}
+          >
+            {editInvoiceId ? "Back to Home" : "Back to History"}
           </button>
         </section>
       ) : null}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BackButton from "../components/BackButton";
 import { EditIcon, TrashIcon } from "../components/Icons";
 import NumericInput from "../components/NumericInput";
@@ -7,7 +7,7 @@ import { useModal } from "../components/Modal";
 import { useToast } from "../components/Toast";
 import { exportSessionPdf } from "../utils/pdf";
 import { formatDate, formatNaira, generateId } from "../utils/helpers";
-import { createSessionSkeleton, saveSession } from "../utils/storage";
+import { createSessionSkeleton, saveSession, getSessions } from "../utils/storage";
 
 function calculateItem(constants, product) {
   const { dollarRate, freightUSD, clearingNGN, containerCBM } = constants;
@@ -27,12 +27,57 @@ function calculateItem(constants, product) {
     costPerPiece,
   };
 }
+function recalculateSessionItems(constants, items) {
+  return items.map(item => {
+    const result = calculateItem(
+      {
+        dollarRate: Number(constants.dollarRate),
+        freightUSD: Number(constants.freightUSD),
+        clearingNGN: Number(constants.clearingNGN),
+        containerCBM: Number(constants.containerCBM),
+      },
+      item
+    );
+    
+    const sellingPricePerPiece = item.pricing?.sellingPricePerPiece || 0;
+    const quantityPerCarton = item.quantityPerCarton || 0;
+    const sellingPricePerCarton = sellingPricePerPiece * quantityPerCarton;
+    const profitPerPiece = sellingPricePerPiece - result.costPerPiece;
+    const profitPerCarton = sellingPricePerCarton - result.totalCartonCost;
+    
+    return {
+      ...item,
+      result,
+      pricing: {
+        ...item.pricing,
+        sellingPricePerPiece,
+        sellingPricePerCarton,
+        profitPerPiece,
+        profitPerCarton
+      }
+    };
+  });
+}
 
-export default function Converter({ user, onNavigate }) {
+export default function Converter({ user, onNavigate, editSessionId }) {
   const { openModal } = useModal();
   const { showToast } = useToast();
   const [step, setStep] = useState(1);
   const [session, setSession] = useState(createSessionSkeleton(""));
+  
+  useEffect(() => {
+    if (editSessionId) {
+      const allSessions = getSessions();
+      const found = allSessions.find(s => s.id === editSessionId);
+      if (found) {
+        setSession(found);
+        setStep(5);
+      } else {
+        showToast("Calculation session not found", "error");
+        onNavigate("home");
+      }
+    }
+  }, [editSessionId]);
   const [product, setProduct] = useState({
     itemName: "",
     cartonPriceUSD: "",
@@ -308,6 +353,10 @@ export default function Converter({ user, onNavigate }) {
 
   const handleBack = () => {
     if (step === 5) {
+      if (editSessionId) {
+        onNavigate("home");
+        return;
+      }
       setStep(3);
       return;
     }
@@ -320,6 +369,10 @@ export default function Converter({ user, onNavigate }) {
       return;
     }
     if (step === 2) {
+      if (session.items.length > 0) {
+        setStep(5);
+        return;
+      }
       setStep(1);
       return;
     }
@@ -428,9 +481,19 @@ export default function Converter({ user, onNavigate }) {
           ))}
           <button
             className="btn btn-primary"
-            onClick={() => validateConstants() && setStep(3)}
+            onClick={() => {
+              if (validateConstants()) {
+                if (session.items.length > 0) {
+                  const updatedItems = recalculateSessionItems(session.constants, session.items);
+                  setSession((prev) => ({ ...prev, items: updatedItems }));
+                  setStep(5);
+                } else {
+                  setStep(3);
+                }
+              }
+            }}
           >
-            Continue to Products →
+            {session.items.length > 0 ? "Recalculate & Preview →" : "Continue to Products →"}
           </button>
         </section>
       ) : null}
@@ -616,11 +679,37 @@ export default function Converter({ user, onNavigate }) {
 
       {step === 5 ? (
         <section className="card stack">
-          <h3>{user.name}</h3>
-          <small className="muted">
-            {session.name} · {formatDate(session.createdAt)} · Rate: $1 ={" "}
-            {formatNaira(session.constants.dollarRate)}
-          </small>
+          <div className="row-between">
+            <div className="grow" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <h3 style={{ fontSize: '1.25rem' }}>{session.name || "Calculation Details"}</h3>
+              <small className="muted">{formatDate(session.createdAt)}</small>
+            </div>
+            <button
+              className="btn btn-secondary"
+              style={{ width: "auto", minHeight: 36, padding: "6px 12px", fontSize: 13 }}
+              onClick={() => setStep(2)}
+            >
+              Edit Rates
+            </button>
+          </div>
+          <div className="card dark-paper" style={{ padding: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
+            <div>
+              <small className="muted" style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Dollar Rate</small>
+              <strong>$1 = {formatNaira(session.constants.dollarRate)}</strong>
+            </div>
+            <div>
+              <small className="muted" style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Freight Cost</small>
+              <strong>${session.constants.freightUSD}</strong>
+            </div>
+            <div>
+              <small className="muted" style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Clearing Fee</small>
+              <strong>{formatNaira(session.constants.clearingNGN)}</strong>
+            </div>
+            <div>
+              <small className="muted" style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Container Size</small>
+              <strong>{session.constants.containerCBM} CBM</strong>
+            </div>
+          </div>
           {session.items.length ? (
             session.items.map((item, index) => (
               <div key={item.id} className="card" style={{ padding: 14 }}>

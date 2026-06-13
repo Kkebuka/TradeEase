@@ -39,6 +39,7 @@ function RateBanner({ rateInfo, onTap }) {
 
 export default function Home({ user, onNavigate, onUserChange }) {
   const [rateInfo, setRateInfo] = useState({ rate: null, source: 'offline', date: null });
+  const [activeTab, setActiveTab] = useState('recent');
   const { openModal, closeModal } = useModal();
   const { showToast } = useToast();
 
@@ -53,25 +54,28 @@ export default function Home({ user, onNavigate, onUserChange }) {
     return sum + (totalDebt - totalPaid);
   }, 0);
 
-  const recent = useMemo(() => {
-    const sessionEvents = getSessions().slice(0, 3).map((session) => ({
-      id: session.id,
-      date: session.createdAt,
-      text: `Calculated '${session.items?.[0]?.itemName || session.name}'`
-    }));
-    const invoiceEvents = getInvoices().slice(0, 3).map((invoice) => ({
+  const combinedHistory = useMemo(() => {
+    const sessionEvents = getSessions().map((session) => {
+      const totalAmount = session.items?.reduce((sum, item) => sum + (item.result?.totalCartonCost || 0), 0) || 0;
+      return {
+        id: session.id,
+        type: 'calculation',
+        date: new Date(session.createdAt),
+        title: session.name || 'Import Calculation',
+        amount: totalAmount,
+        meta: `${session.items?.length || 0} product${session.items?.length === 1 ? '' : 's'} · Rate: ₦${session.constants?.dollarRate || '0'}`
+      };
+    });
+    const invoiceEvents = getInvoices().map((invoice) => ({
       id: invoice.id,
-      date: invoice.createdAt,
-      text: `Invoice ${invoice.invoiceNumber} · ${formatNaira(invoice.grandTotal)}`
+      type: 'invoice',
+      date: new Date(invoice.createdAt),
+      title: invoice.customerName || 'Unnamed Customer',
+      amount: invoice.grandTotal,
+      meta: invoice.invoiceNumber
     }));
-    const debtEvents = getDebtors().slice(0, 3).map((debtor) => ({
-      id: debtor.id,
-      date: debtor.createdAt,
-      text: `${debtor.name} owes money`
-    }));
-    return [...sessionEvents, ...invoiceEvents, ...debtEvents]
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 3);
+    return [...sessionEvents, ...invoiceEvents]
+      .sort((a, b) => b.date - a.date);
   }, [debtTotal]);
 
   const openRateInfo = () => {
@@ -166,11 +170,60 @@ export default function Home({ user, onNavigate, onUserChange }) {
         </div>
       </button>
 
-      <section className="card stack">
-        <div className="row-between">
-          <h3>Recent</h3>
+      <section className="history-tabs-container">
+        <div className="history-header">
+          <h3>Activity Feed</h3>
+          <div className="history-tabs">
+            <button
+              className={`history-tab-btn ${activeTab === 'recent' ? 'active' : ''}`}
+              onClick={() => setActiveTab('recent')}
+            >
+              Recent
+            </button>
+            <button
+              className={`history-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+              onClick={() => setActiveTab('all')}
+            >
+              History
+            </button>
+          </div>
         </div>
-        {recent.length ? recent.map((item) => <small key={item.id} className="muted">• {item.text}</small>) : <small className="muted">No activity yet.</small>}
+        
+        <div className="history-list">
+          {(() => {
+            const list = activeTab === 'recent' ? combinedHistory.slice(0, 3) : combinedHistory;
+            if (!list.length) {
+              return <small className="muted" style={{ display: 'block', padding: '20px 0', textAlign: 'center' }}>No activity yet.</small>;
+            }
+            return list.map((item) => (
+              <button
+                key={item.id}
+                className="history-item-card surface-glow"
+                onClick={() => {
+                  if (item.type === 'calculation') {
+                    onNavigate(`converter?edit=${item.id}`);
+                  } else {
+                    onNavigate(`invoice?edit=${item.id}`);
+                  }
+                }}
+              >
+                <span className={`history-icon-wrapper ${item.type}`}>
+                  {item.type === 'calculation' ? <BoxIcon /> : <ReceiptIcon />}
+                </span>
+                <div className="history-item-info">
+                  <div className="row-between">
+                    <strong className="history-item-title">{item.title}</strong>
+                    <strong className="history-item-amount">{formatNaira(item.amount)}</strong>
+                  </div>
+                  <div className="row-between" style={{ marginTop: 2 }}>
+                    <small className="muted">{item.meta}</small>
+                    <small className="muted">{formatDate(item.date.toISOString())}</small>
+                  </div>
+                </div>
+              </button>
+            ));
+          })()}
+        </div>
       </section>
     </main>
   );
